@@ -4,6 +4,13 @@
 SHPACK_DIR="/usr/local/shpack/"
 SHPACK_URL="https://colorduck.me/shpack.tar.gz"
 os_version=""
+release=""
+
+if [[ -f /etc/os-release ]]; then
+    . /etc/os-release
+    release=$ID
+fi
+
 
 # os version
 if [[ -f /etc/os-release ]]; then
@@ -28,10 +35,14 @@ elif [[ x"${release}" == x"debian" ]]; then
 fi
 
 install_base() {
-    if [[ x"${release}" == x"centos" ]]; then
+    echo "Installing base packages..."
+    if [[ $release == "centos" ]]; then
         yum install wget curl tar -y
+    elif [[ $release == "ubuntu" || $release == "debian" ]]; then
+        apt update && apt install wget curl tar -y
     else
-        apt install wget curl tar -y
+        echo "Unsupported OS"
+        exit 1
     fi
 }
 
@@ -92,9 +103,9 @@ show_menu() {
   2. 更新shpack
 ————————————————
   3. 运行setup_ss.sh
-  4. 运行setup_vps.sh
-
-        read -p "请选择一个操作[0-6]: " option
+  4. 运行setup_vps.sh"
+        # Prompt for user input
+        read -p "请选择一个操作[0-4]: " option
         case "$option" in
             1) install_shpack ;;
             2) update_shpack ;;
