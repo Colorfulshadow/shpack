@@ -2,6 +2,6 @@
 
 ## Usage
 ```
-wget http://colorduck.me/shpack.sh
+wget https://download.colorduck.me/shpack.sh
 bash shpack.sh
 ```

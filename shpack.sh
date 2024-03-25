@@ -2,7 +2,7 @@
 
 # Define paths and URLs
 SHPACK_DIR="/usr/local/shpack/"
-SHPACK_URL="https://colorduck.me/shpack.tar.gz"
+SHPACK_URL="https://download.colorduck.me/shpack.tar.gz"
 os_version=""
 release=""
 
