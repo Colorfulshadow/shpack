@@ -47,6 +47,7 @@ install_base() {
 }
 
 install_shpack() {
+    install_base
     echo "Installing shpack..."
     cd /usr/local/
     systemctl stop shpack
@@ -118,7 +119,6 @@ show_menu() {
 }
 
 main() {
-    install_base
     show_menu
 }
 
