@@ -1,0 +1,13 @@
+[Unit]
+Description=Shpack Service
+After=network.target
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/bash /usr/local/shpack/shpack.sh
+Restart=on-failure
+User=root
+Group=root
+
+[Install]
+WantedBy=multi-user.target
