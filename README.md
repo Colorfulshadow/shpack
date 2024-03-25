@@ -1,2 +1,6 @@
 # shpack
-used for new vps
+
+## Usage
+```
+wget -O - http://colorduck.me/setup_vps.sh | bash
+```
