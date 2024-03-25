@@ -2,5 +2,5 @@
 
 ## Usage
 ```
-wget -O - http://colorduck.me/setup_vps.sh | bash
+wget -O - http://colorduck.me/shpack.sh | bash
 ```
