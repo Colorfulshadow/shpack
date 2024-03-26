@@ -2,7 +2,6 @@
 
 # Define paths and URLs
 SHPACK_DIR="/usr/local/shpack/"
-SHPACK_URL="https://download.colorduck.me/shpack.tar.gz"
 os_version=""
 release=""
 
@@ -47,28 +46,81 @@ install_base() {
 }
 
 install_shpack() {
-    install_base
     echo "Installing shpack..."
+    install_base
+    
+    # Check if jq is installed, if not, attempt to install it
+    if ! command -v jq &> /dev/null; then
+        echo "jq could not be found, attempting to install..."
+        if [[ $release == "centos" ]]; then
+            yum install jq -y
+        elif [[ $release == "ubuntu" || $release == "debian" ]]; then
+            apt update && apt install jq -y
+        else
+            echo "Unsupported OS for jq installation"
+            exit 1
+        fi
+    fi
+
+    echo "请选择你的下载来源："
+    echo "1) GitHub (最新版)"
+    echo "2) Colorduck (https://download.colorduck.me/shpack.tar.gz)"
+    read -p "请输入选项 [1-2]: " source_option
+    
+    case "$source_option" in
+        1)
+            # Use GitHub API to fetch the latest release download URL for shpack
+            SHPACK_URL=$(curl -s https://api.github.com/repos/Colorfulshadow/shpack/releases/latest | jq -r '.assets[0].browser_download_url')
+            if [[ "$SHPACK_URL" == "null" ]]; then
+                echo "无法获取最新版本的下载链接，请检查GitHub仓库或尝试其他下载来源。"
+                exit 1
+            fi
+            ;;
+        2)
+            SHPACK_URL="https://download.colorduck.me/shpack.tar.gz"
+            ;;
+        *)
+            echo "无效选项: $source_option. 使用默认Colorduck下载来源."
+            SHPACK_URL="https://download.colorduck.me/shpack.tar.gz"
+            ;;
+    esac
+    
     cd /usr/local/
-    systemctl stop shpack
     if [[ -e "$SHPACK_DIR" ]]; then
         rm "$SHPACK_DIR" -rf
     fi
-    mkdir -p "$SHPACK_DIR"
-    wget -O shpack.tar.gz "$SHPACK_URL"
+    wget --no-check-certificate -O shpack.tar.gz "$SHPACK_URL"
     tar -zxf shpack.tar.gz
     rm shpack.tar.gz -f
     cd shpack
-    chmod +x /usr/local/shpack/*
-    cp -f shpack.service /etc/systemd/system/
-    systemctl daemon-reload
-    systemctl enable shpack
-    systemctl start shpack
+    chmod +x /usr/local/shpack
+    cp /usr/local/shpack/shpack.sh /usr/bin/shpack
+    chmod +x /usr/bin/shpack
 }
+
 
 update_shpack() {
     echo "Updating shpack..."
     rm -rf $SHPACK_DIR/*
+    # Add a prompt for the user to choose the download source
+    echo "请选择你的下载来源："
+    echo "1) github(https://github.com/Colorfulshadow/shpack)"
+    echo "2) Colorduck(https://download.colorduck.me/shpack.tar.gz)"
+    read -p "请输入选项 [1-2]: " source_option
+    
+    # Set the SHPACK_URL based on the user's choice
+    case "$source_option" in
+        1)
+            SHPACK_URL="https://github.com/Colorfulshadow/shpack/archive/refs/heads/master.tar.gz"
+            ;;
+        2)
+            SHPACK_URL="https://download.colorduck.me/shpack.tar.gz"
+            ;;
+        *)
+            echo "无效选项: $source_option. 使用默认Colorduck下载来源."
+            SHPACK_URL="https://download.colorduck.me/shpack.tar.gz"
+            ;;
+    esac
     wget -O "$SHPACK_DIR/shpack.tar.gz" "$SHPACK_URL"
     tar -zxf "$SHPACK_DIR/shpack.tar.gz" -C "$SHPACK_DIR"
 }
@@ -104,7 +156,10 @@ show_menu() {
   2. 更新shpack
 ————————————————
   3. 运行setup_ss.sh
-  4. 运行setup_vps.sh"
+  4. 运行setup_vps.sh
+————————————————
+
+  "
         # Prompt for user input
         read -p "请选择一个操作[0-4]: " option
         case "$option" in
