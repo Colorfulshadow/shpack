@@ -7,10 +7,20 @@ if [ "$(id -u)" -ne 0 ]; then
 fi
 
 # Install necessary environments: snapd and ufw
-echo "Updating package list..."
-apt update
-echo "Installing snapd and ufw..."
-apt install -y snapd ufw
+if ! command -v snap &> /dev/null; then
+    echo "snap could not be found, attempting to install..."
+    apt update && apt install -y snapd
+fi
+if ! command -v ufw &> /dev/null; then
+    echo "ufw could not be found, attempting to install..."
+    apt update && apt install ufw -y
+fi
+
+# ufw allow basic port 
+ufw allow ssh
+ufw allow http
+ufw allow https
+ufw enable
 
 # 1. Install snap core
 echo "Installing snap core..."

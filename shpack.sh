@@ -155,8 +155,8 @@ show_menu() {
   1. 安装shpack
   2. 更新shpack
 ————————————————
-  3. 运行setup_ss.sh
-  4. 运行setup_vps.sh
+  3. 安装shadowsocks-libev
+  4. 初始化vps
 ————————————————
 
   "

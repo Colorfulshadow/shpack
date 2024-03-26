@@ -16,6 +16,16 @@ echo "Restarting SSHD..."
 systemctl restart sshd
 echo "SSH configuration complete."
 
+# install ufw and add ssh port
+if ! command -v ufw &> /dev/null; then
+    echo "ufw could not be found, attempting to install..."
+    apt update && apt install ufw -y
+fi
+ufw allow ssh
+ufw allow http
+ufw allow https
+ufw enable
+
 # Step 3: Create /root/ssl folder and setup a cron job for SSL certificate update
 echo "Setting up SSL certificate update..."
 mkdir -p /root/ssl
