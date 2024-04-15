@@ -94,7 +94,7 @@ install_shpack() {
     rm shpack.tar.gz -f
     cd shpack
     chmod +x /usr/local/shpack
-    cp /usr/local/shpack/shpack.sh /usr/bin/shpack
+    \cp /usr/local/shpack/shpack.sh /usr/bin/shpack
     chmod +x /usr/bin/shpack
 }
 
