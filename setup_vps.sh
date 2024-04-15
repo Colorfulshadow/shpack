@@ -21,9 +21,20 @@ if ! command -v ufw &> /dev/null; then
     echo "ufw could not be found, attempting to install..."
     apt update && apt install ufw -y
 fi
-ufw allow ssh
+if ! command -v curl &> /dev/null; then
+    echo "curl could not be found, attempting to install..."
+    apt update && apt install curl -y
+fi
 ufw allow http
 ufw allow https
+SSH_CONFIG="/etc/ssh/sshd_config"
+SSH_PORT=$(grep "^Port " $SSH_CONFIG | awk '{print $2}')
+if [ -n "$SSH_PORT" ]; then
+    echo "Allowing SSH access on port $SSH_PORT..."
+    sudo ufw allow $SSH_PORT/tcp
+else
+    echo "No SSH port found in $SSH_CONFIG."
+fi
 ufw enable
 
 # Step 3: Create /root/ssl folder and setup a cron job for SSL certificate update

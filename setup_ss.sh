@@ -16,12 +16,6 @@ if ! command -v ufw &> /dev/null; then
     apt update && apt install ufw -y
 fi
 
-# ufw allow basic port 
-ufw allow ssh
-ufw allow http
-ufw allow https
-ufw enable
-
 # 1. Install snap core
 echo "Installing snap core..."
 snap install core

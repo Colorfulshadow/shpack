@@ -127,9 +127,9 @@ update_shpack() {
 
 run_setup_ss() {
     echo "Running setup_ss.sh..."
-    SETUP_SS_SCRIPT="$SHPACK_DIR/setup_ss.sh"
-    if [ -f "$SETUP_SS_SCRIPT" ]; then
-        bash "$SETUP_SS_SCRIPT"
+    SETUP_SCRIPT="$SHPACK_DIR/setup_ss.sh"
+    if [ -f "$SETUP_SCRIPT" ]; then
+        bash "$SETUP_SCRIPT"
     else
         echo "setup_ss.sh script does not exist in $SHPACK_DIR."
     fi
@@ -137,11 +137,21 @@ run_setup_ss() {
 
 run_setup_vps() {
     echo "Running setup_vps.sh..."
-    SETUP_SS_SCRIPT="$SHPACK_DIR/setup_vps.sh"
-    if [ -f "$SETUP_SS_SCRIPT" ]; then
-        bash "$SETUP_SS_SCRIPT"
+    SETUP_SCRIPT="$SHPACK_DIR/setup_vps.sh"
+    if [ -f "$SETUP_SCRIPT" ]; then
+        bash "$SETUP_SCRIPT"
     else
         echo "setup_vps.sh script does not exist in $SHPACK_DIR."
+    fi
+}
+
+run_setup_vless(){
+    echo "Running setup_vless.sh..."
+    SETUP_SCRIPT="$SHPACK_DIR/setup_vless.sh"
+    if [ -f "$SETUP_SCRIPT" ]; then
+        bash "$SETUP_SCRIPT"
+    else
+        echo "setup_vless.sh script does not exist in $SHPACK_DIR."
     fi
 }
 
@@ -155,8 +165,9 @@ show_menu() {
   1. 安装shpack
   2. 更新shpack
 ————————————————
+  3. 初始化 vps
   3. 安装shadowsocks-libev
-  4. 初始化vps
+  4. 安装vless-reality
 ————————————————
 
   "
@@ -165,8 +176,9 @@ show_menu() {
         case "$option" in
             1) install_shpack ;;
             2) update_shpack ;;
-            3) run_setup_ss ;;
-            4) run_setup_vps ;;
+            3) run_setup_vps ;;
+            4) run_setup_ss ;;
+            5) run_setup_vless ;;
             0) break ;;
             *) echo "无效选项: $option" ;;
         esac
