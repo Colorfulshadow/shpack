@@ -94,7 +94,7 @@ install_shpack() {
     rm shpack.tar.gz -f
     cd shpack
     chmod +x /usr/local/shpack
-    cp /usr/local/shpack/shpack.sh /usr/bin/shpack
+    \cp /usr/local/shpack/shpack.sh /usr/bin/shpack
     chmod +x /usr/bin/shpack
 }
 
@@ -166,8 +166,8 @@ show_menu() {
   2. 更新shpack
 ————————————————
   3. 初始化 vps
-  3. 安装shadowsocks-libev
-  4. 安装vless-reality
+  4. 安装shadowsocks-libev
+  5. 安装vless-reality
 ————————————————
 
   "
