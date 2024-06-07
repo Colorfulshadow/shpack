@@ -69,9 +69,9 @@ check_update() {
 install_base() {
     echo "Installing base packages..."
     if [[ $release == "centos" ]]; then
-        yum install wget curl tar -y
+        yum install wget curl tar git -y
     elif [[ $release == "ubuntu" || $release == "debian" ]]; then
-        apt update && apt install wget curl tar -y
+        apt update && apt install wget curl tar git -y
     else
         echo "Unsupported OS"
         exit 1
