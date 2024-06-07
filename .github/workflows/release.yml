@@ -3,7 +3,7 @@ name: Release on Push
 on:
   push:
     branches:
-      - main
+      - main  # 你可以将 'main' 替换为你的默认分支名称
 
 jobs:
   release:
@@ -13,10 +13,14 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v2
 
+      - name: Debug: List all tags
+        run: git tag
+
       - name: Get latest release tag
         id: get_latest_release
         run: |
-          latest_tag=$(git describe --tags `git rev-list --tags --max-count=1`)
+          latest_tag=$(git describe --tags `git rev-list --tags --max-count=1` 2>/dev/null || echo "0.0.0")
+          echo "Latest tag: $latest_tag"
           echo "::set-output name=tag::$latest_tag"
 
       - name: Increment version number
@@ -27,6 +31,7 @@ jobs:
           minor=${version_parts[2]}
           new_minor=$((minor + 1))
           new_tag="${version_parts[0]}.${version_parts[1]}.$new_minor"
+          echo "New tag: $new_tag"
           echo "::set-output name=new_tag::$new_tag"
 
       - name: Create new release
