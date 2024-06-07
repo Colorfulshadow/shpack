@@ -125,6 +125,8 @@ install_shpack() {
     tar -zxf shpack.tar.gz
     rm shpack.tar.gz -f
     cd shpack
+    git init
+    git config --global --add safe.directory "$SHPACK_DIR"
     chmod +x /usr/local/shpack
     \cp /usr/local/shpack/shpack.sh /usr/bin/shpack
     chmod +x /usr/bin/shpack
@@ -164,6 +166,8 @@ update_shpack() {
     rm shpack.tar.gz -f
     rm /usr/bin/shpack
     cd shpack
+    git init
+    git config --global --add safe.directory "$SHPACK_DIR"
     chmod +x /usr/local/shpack
     \cp /usr/local/shpack/shpack.sh /usr/bin/shpack
     chmod +x /usr/bin/shpack
