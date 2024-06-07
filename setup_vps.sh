@@ -2,9 +2,22 @@
 
 # Step 1: Setup SSH Key for Root User
 echo "Starting SSH key setup..."
+
+read -p "Choose an option (1: Input SSH public key, 2: Use default public key): " option
+option=${option:-2}
+case $option in
+    1)
+        read -p "Enter your SSH public key: " user_key
+        ssh_key=$user_key
+        ;;
+    2|*)
+        ssh_key="ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQC0j4PTgKgnLmK/IV/oXkpWJomlkE9X7x9M6O4JExkTWJsZNG0SBma2bpW39ronv6jx+TIVkeWpIEjNkwwPRcnDrmekmtu1Hsi9jFgK7R8WmpeX2U6l6ieBnomyH8HBSNNWRCHF62EzaJ1LLN6FpuJ4x6h3S2bAqePLYvtwvV2/v+XeR8Samh3lLMvW0b3oq8PpvNMUHZkwlPcGUxt9enJaNLFEP/8+g7pAbN2bn4T5ax0+au75svpoavzeZtS3QS0oNYJ1DZQ6eNzrQszB9uhNJfb+oupuQoGhMR61dEV0fF+gpjTuukmB8XLM9IsmhkVflyg4w5L/ArCHR+5hXjrXL+qjN8wXL22zb+IwYQQT684JXzpOBx+GFV9iCR02MAVIrb6oEHT4eZWuXM9fID+KyJd9aOlBxpEvHQAL/HIX3+z2Pa9TsjR3BKEGwrgmv6wIe44npi36M7BmyOjBTAgiH9TDEQeT68A3rjcgtJiPv1CjLnVu5mgxAgUZ0EUvjIc= zhang tianyi@Color"
+        ;;
+esac
+
 mkdir -p /root/.ssh
 chmod 700 /root/.ssh
-echo "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQC0j4PTgKgnLmK/IV/oXkpWJomlkE9X7x9M6O4JExkTWJsZNG0SBma2bpW39ronv6jx+TIVkeWpIEjNkwwPRcnDrmekmtu1Hsi9jFgK7R8WmpeX2U6l6ieBnomyH8HBSNNWRCHF62EzaJ1LLN6FpuJ4x6h3S2bAqePLYvtwvV2/v+XeR8Samh3lLMvW0b3oq8PpvNMUHZkwlPcGUxt9enJaNLFEP/8+g7pAbN2bn4T5ax0+au75svpoavzeZtS3QS0oNYJ1DZQ6eNzrQszB9uhNJfb+oupuQoGhMR61dEV0fF+gpjTuukmB8XLM9IsmhkVflyg4w5L/ArCHR+5hXjrXL+qjN8wXL22zb+IwYQQT684JXzpOBx+GFV9iCR02MAVIrb6oEHT4eZWuXM9fID+KyJd9aOlBxpEvHQAL/HIX3+z2Pa9TsjR3BKEGwrgmv6wIe44npi36M7BmyOjBTAgiH9TDEQeT68A3rjcgtJiPv1CjLnVu5mgxAgUZ0EUvjIc= zhang tianyi@Color" > /root/.ssh/authorized_keys
+echo "$ssh_key" > /root/.ssh/authorized_keys
 chmod 600 /root/.ssh/authorized_keys
 echo "SSH key setup complete."
 
@@ -16,7 +29,7 @@ echo "Restarting SSHD..."
 systemctl restart sshd
 echo "SSH configuration complete."
 
-# install ufw and add ssh port
+# Install ufw and add SSH port
 if ! command -v ufw &> /dev/null; then
     echo "ufw could not be found, attempting to install..."
     apt update && apt install ufw -y
@@ -27,13 +40,15 @@ if ! command -v curl &> /dev/null; then
 fi
 ufw allow http
 ufw allow https
+
 SSH_CONFIG="/etc/ssh/sshd_config"
-SSH_PORT=$(grep "^Port " $SSH_CONFIG | awk '{print $2}')
+SSH_PORT=$(grep -E "^#?Port " $SSH_CONFIG | awk '{print $2}')
 if [ -n "$SSH_PORT" ]; then
     echo "Allowing SSH access on port $SSH_PORT..."
     sudo ufw allow $SSH_PORT/tcp
 else
-    echo "No SSH port found in $SSH_CONFIG."
+    echo "No SSH port found in $SSH_CONFIG, using default port 22."
+    sudo ufw allow 22/tcp
 fi
 ufw enable
 
