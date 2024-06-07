@@ -19,6 +19,7 @@ jobs:
 
       - name: Debug List all tags
         run: git tag
+        shell: bash
 
       - name: Get latest release tag
         id: get_latest_release
