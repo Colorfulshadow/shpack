@@ -35,11 +35,13 @@ fi
 
 check_update() {
     # Check if shpack directory exists
-    SHPACK_DIR="/usr/local/shpack/"
     if [[ ! -d "$SHPACK_DIR" ]]; then
         echo "shpack directory does not exist, skipping update check."
         return
     fi
+
+    # Add the directory to Git safe directory list
+    git config --global --add safe.directory "$SHPACK_DIR"
 
     # Get the current local version from git tag
     cd $SHPACK_DIR
