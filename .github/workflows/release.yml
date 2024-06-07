@@ -33,14 +33,19 @@ jobs:
       - name: Increment version number
         id: increment_version
         run: |
-          latest_tag=${{ env.tag }}
+          latest_tag=${{ steps.get_latest_release.outputs.tag }}
           IFS='.' read -r -a version_parts <<< "$latest_tag"
           minor=${version_parts[2]}
           new_minor=$((minor + 1))
           new_tag="${version_parts[0]}.${version_parts[1]}.$new_minor"
           echo "New tag: $new_tag"
-          echo "new_tag=$new_tag" >> $GITHUB_ENV
+          echo "::set-output name=new_tag::$new_tag"
 
+      - name: Create new tag and push to repository
+        run: |
+          new_tag=${{ steps.increment_version.outputs.new_tag }}
+          git tag $new_tag
+          git push origin $new_tag
       - name: Check if tag exists
         id: check_tag
         run: |
@@ -50,9 +55,15 @@ jobs:
           else
             echo "Tag does not exist."
           fi
+          
+      - name: Checkout the newly created tag
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ steps.increment_version.outputs.new_tag }}
 
       - name: Create new release
-        if: success()  # 仅在检查标签不存在时才创建新发布
+        if: success()
         id: create_release
         uses: actions/create-release@v1
         env:
