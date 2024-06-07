@@ -33,6 +33,36 @@ elif [[ x"${release}" == x"debian" ]]; then
     fi
 fi
 
+check_update() {
+    # Check if shpack directory exists
+    if [[ ! -d "$SHPACK_DIR" ]]; then
+        echo "shpack directory does not exist, skipping update check."
+        return
+    fi
+
+    # Get the current local version from git tag
+    cd $SHPACK_DIR
+    if ! git rev-parse --git-dir > /dev/null 2>&1; then
+        echo "No git repository found in shpack directory, skipping update check."
+        return
+    fi
+    local_version=$(git describe --tags $(git rev-list --tags --max-count=1) 2>/dev/null || echo "0.0.0")
+
+    # Get the latest version from GitHub
+    latest_version=$(curl -s https://api.github.com/repos/Colorfulshadow/shpack/releases/latest | jq -r '.tag_name')
+
+    # Compare versions
+    if [[ "$local_version" != "$latest_version" ]]; then
+        echo "A new version of shpack is available: $latest_version (current version: $local_version)"
+        read -p "Do you want to update? [y/N]: " update_choice
+        if [[ "$update_choice" == "y" || "$update_choice" == "Y" ]]; then
+            update_shpack
+        fi
+    else
+        echo "shpack is up to date (version: $local_version)."
+    fi
+}
+
 install_base() {
     echo "Installing base packages..."
     if [[ $release == "centos" ]]; then
@@ -199,6 +229,7 @@ show_menu() {
 }
 
 main() {
+    check_update
     show_menu
 }
 
