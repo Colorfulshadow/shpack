@@ -29,32 +29,27 @@ jobs:
           latest_tag=$(git describe --tags $(git rev-list --tags --max-count=1) 2>/dev/null || echo "0.0.0")
           echo "Latest tag: $latest_tag"
           echo "tag=$latest_tag" >> $GITHUB_ENV
-
+          
       - name: Increment version number
         id: increment_version
         run: |
           latest_tag=${{ steps.get_latest_release.outputs.tag }}
           IFS='.' read -r -a version_parts <<< "$latest_tag"
-          minor=${version_parts[2]}
-          new_minor=$((minor + 1))
-          new_tag="${version_parts[0]}.${version_parts[1]}.$new_minor"
+          major=${version_parts[0]:-0}
+          minor=${version_parts[1]:-0}
+          patch=${version_parts[2]:-0}
+          new_patch=$((patch + 1))
+          new_tag="${major}.${minor}.${new_patch}"
           echo "New tag: $new_tag"
           echo "::set-output name=new_tag::$new_tag"
 
       - name: Create new tag and push to repository
         run: |
           new_tag=${{ steps.increment_version.outputs.new_tag }}
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
           git tag $new_tag
           git push origin $new_tag
-      - name: Check if tag exists
-        id: check_tag
-        run: |
-          if git rev-parse "refs/tags/${{ env.new_tag }}" >/dev/null 2>&1; then
-            echo "Tag already exists."
-            exit 1
-          else
-            echo "Tag does not exist."
-          fi
           
       - name: Checkout the newly created tag
         uses: actions/checkout@v4
