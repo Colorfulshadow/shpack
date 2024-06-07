@@ -19,13 +19,10 @@ jobs:
         # v2 defaults to a shallow checkout, but we need at least to the previous tag
         with:
           fetch-depth: 0
+          
       - name: Acquire tags for the repo
         run: |
           git fetch --no-tags --prune --depth=1 origin +refs/tags/*:refs/tags/*
-      - name: Display the current git status
-        run: |
-          git status
-          git describe
 
       - name: Debug List all tags
         run: git tag
