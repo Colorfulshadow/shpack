@@ -19,11 +19,6 @@ jobs:
 
         with:
           fetch-depth: 0
-
-      - name: Display the current git status
-        run: |
-          git status
-          git describe
     
       - name: Debug List all tags
         run: git tag
