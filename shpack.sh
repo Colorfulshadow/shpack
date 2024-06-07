@@ -135,6 +135,7 @@ install_shpack() {
 
 update_shpack() {
     echo "Updating shpack..."
+    install_base
     rm -rf $SHPACK_DIR
     # Add a prompt for the user to choose the download source
     echo "请选择你的下载来源："
