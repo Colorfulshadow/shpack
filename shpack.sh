@@ -69,7 +69,6 @@ install_shpack() {
     
     case "$source_option" in
         1)
-            # Use GitHub API to fetch the latest release download URL for shpack
             SHPACK_URL=$(curl -s https://api.github.com/repos/Colorfulshadow/shpack/releases/latest | jq -r '.assets[0].browser_download_url')
             if [[ "$SHPACK_URL" == "null" ]]; then
                 echo "无法获取最新版本的下载链接，请检查GitHub仓库或尝试其他下载来源。"
@@ -80,8 +79,8 @@ install_shpack() {
             SHPACK_URL="https://download.colorduck.me/shpack.tar.gz"
             ;;
         *)
-            echo "无效选项: $source_option. 使用默认Colorduck下载来源."
-            SHPACK_URL="https://download.colorduck.me/shpack.tar.gz"
+            echo "无效选项: $source_option. 默认使用Github仓库."
+            SHPACK_URL=$(curl -s https://api.github.com/repos/Colorfulshadow/shpack/releases/latest | jq -r '.assets[0].browser_download_url')
             ;;
     esac
     
@@ -111,14 +110,14 @@ update_shpack() {
     # Set the SHPACK_URL based on the user's choice
     case "$source_option" in
         1)
-            SHPACK_URL="https://github.com/Colorfulshadow/shpack/archive/refs/heads/master.tar.gz"
+            SHPACK_URL=$(curl -s https://api.github.com/repos/Colorfulshadow/shpack/releases/latest | jq -r '.assets[0].browser_download_url')
             ;;
         2)
             SHPACK_URL="https://download.colorduck.me/shpack.tar.gz"
             ;;
         *)
-            echo "无效选项: $source_option. 使用默认Colorduck下载来源."
-            SHPACK_URL="https://download.colorduck.me/shpack.tar.gz"
+            echo "无效选项: $source_option. 使用默认Github仓库."
+            SHPACK_URL=$(curl -s https://api.github.com/repos/Colorfulshadow/shpack/releases/latest | jq -r '.assets[0].browser_download_url')
             ;;
     esac
     wget -O "$SHPACK_DIR/shpack.tar.gz" "$SHPACK_URL"
