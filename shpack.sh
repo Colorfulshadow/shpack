@@ -120,8 +120,20 @@ update_shpack() {
             SHPACK_URL=$(curl -s https://api.github.com/repos/Colorfulshadow/shpack/releases/latest | jq -r '.assets[0].browser_download_url')
             ;;
     esac
-    wget -O "$SHPACK_DIR/shpack.tar.gz" "$SHPACK_URL"
-    tar -zxf "$SHPACK_DIR/shpack.tar.gz" -C "$SHPACK_DIR"
+    
+    cd /usr/local/
+    if [[ -e "$SHPACK_DIR" ]]; then
+        rm "$SHPACK_DIR" -rf
+    fi
+    
+    wget --no-check-certificate -O shpack.tar.gz "$SHPACK_URL"
+    tar -zxf shpack.tar.gz
+    rm shpack.tar.gz -f
+    rm /usr/bin/shpack
+    cd shpack
+    chmod +x /usr/local/shpack
+    \cp /usr/local/shpack/shpack.sh /usr/bin/shpack
+    chmod +x /usr/bin/shpack
 }
 
 run_setup_ss() {
@@ -159,14 +171,16 @@ show_menu() {
     while true; do
         echo -e "
   shpack管理脚本
+  请输入你的选项-->
+  
   0. 退出脚本
 ————————————————
-  1. 安装shpack
-  2. 更新shpack
+  1. 安装 shpack
+  2. 更新 shpack
 ————————————————
   3. 初始化 vps
-  4. 安装shadowsocks-libev
-  5. 安装vless-reality
+  4. 安装 shadowsocks-libev
+  5. 安装 vless-reality
 ————————————————
 
   "
