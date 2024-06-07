@@ -19,10 +19,6 @@ jobs:
 
         with:
           fetch-depth: 0
-          
-      - name: Acquire tags for the repo
-        run: |
-          git fetch --no-tags --prune --depth=1 origin +refs/tags/*:refs/tags/*
 
       - name: Display the current git status
         run: |
