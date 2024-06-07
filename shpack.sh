@@ -135,7 +135,7 @@ install_shpack() {
 
 update_shpack() {
     echo "Updating shpack..."
-    rm -rf $SHPACK_DIR/*
+    rm -rf $SHPACK_DIR
     # Add a prompt for the user to choose the download source
     echo "请选择你的下载来源："
     echo "1) github(https://github.com/Colorfulshadow/shpack)"
