@@ -31,11 +31,6 @@ jobs:
           echo "::set-output name=tag::$latest_tag"
           echo "tag=$latest_tag" >> $GITHUB_ENV
           
-      - name: Debug latest tag
-        run: |
-          echo "Debug: latest tag is ${{ steps.get_latest_release.outputs.tag }}"
-
-          
       - name: Increment version number
         id: increment_version
         run: |
