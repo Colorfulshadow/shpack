@@ -1,0 +1,60 @@
+name: Release on Push
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Get latest release tag
+        id: get_latest_release
+        run: |
+          latest_tag=$(git describe --tags `git rev-list --tags --max-count=1`)
+          echo "::set-output name=tag::$latest_tag"
+
+      - name: Increment version number
+        id: increment_version
+        run: |
+          latest_tag=${{ steps.get_latest_release.outputs.tag }}
+          IFS='.' read -r -a version_parts <<< "$latest_tag"
+          minor=${version_parts[2]}
+          new_minor=$((minor + 1))
+          new_tag="${version_parts[0]}.${version_parts[1]}.$new_minor"
+          echo "::set-output name=new_tag::$new_tag"
+
+      - name: Create new release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ steps.increment_version.outputs.new_tag }}
+          release_name: Release ${{ steps.increment_version.outputs.new_tag }}
+          draft: false
+          prerelease: false
+
+      - name: Create shpack directory
+        run: mkdir -p shpack
+
+      - name: Copy repository content to shpack
+        run: cp -r ./* shpack
+
+      - name: Create tarball
+        run: tar -czvf shpack.tar.gz shpack
+
+      - name: Upload release asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: shpack.tar.gz
+          asset_name: shpack.tar.gz
+          asset_content_type: application/gzip
