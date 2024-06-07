@@ -67,7 +67,7 @@ jobs:
         run: mkdir -p shpack
 
       - name: Copy repository content to shpack
-        run: cp -r ./* shpack
+        run: rsync -av --progress ./ ./shpack --exclude shpack
 
       - name: Create tarball
         run: tar -czvf shpack.tar.gz shpack
