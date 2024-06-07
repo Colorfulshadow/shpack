@@ -35,6 +35,7 @@ fi
 
 check_update() {
     # Check if shpack directory exists
+    SHPACK_DIR="/usr/local/shpack/"
     if [[ ! -d "$SHPACK_DIR" ]]; then
         echo "shpack directory does not exist, skipping update check."
         return
