@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
 
     permissions:
-      contents: write  # 确保有写权限
+      contents: write
 
     steps:
       - name: Checkout repository
