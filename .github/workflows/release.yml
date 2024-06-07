@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
 
     permissions:
-      contents: write
+      contents: write  # 确保有写权限
 
     steps:
       - name: Checkout repository
@@ -23,7 +23,12 @@ jobs:
       - name: Get latest release tag
         id: get_latest_release
         run: |
-          latest_tag=$(git describe --tags $(git rev-list --tags --max-count=1) 2>/dev/null)
+          # Check if there are any tags
+          if [ $(git tag | wc -l) -eq 0 ]; then
+            latest_tag="0.0.0"
+          else
+            latest_tag=$(git describe --tags $(git rev-list --tags --max-count=1) 2>/dev/null || echo "0.0.0")
+          fi
           echo "Latest tag: $latest_tag"
           echo "tag=$latest_tag" >> $GITHUB_ENV
 
@@ -32,9 +37,11 @@ jobs:
         run: |
           latest_tag=${{ env.tag }}
           IFS='.' read -r -a version_parts <<< "$latest_tag"
-          minor=${version_parts[2]}
-          new_minor=$((minor + 1))
-          new_tag="${version_parts[0]}.${version_parts[1]}.$new_minor"
+          major=${version_parts[0]}
+          minor=${version_parts[1]}
+          patch=${version_parts[2]}
+          new_patch=$((patch + 1))
+          new_tag="$major.$minor.$new_patch"
           echo "New tag: $new_tag"
           echo "new_tag=$new_tag" >> $GITHUB_ENV
 
