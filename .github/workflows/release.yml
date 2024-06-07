@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
 
     permissions:
-      contents: write
+      contents: write  # 确保有写权限
 
     steps:
       - name: Checkout repository
@@ -71,7 +71,7 @@ jobs:
         run: mkdir -p shpack
 
       - name: Copy repository content to shpack
-        run: cp -r ./* shpack
+        run: rsync -av --exclude='shpack' ./ shpack/
 
       - name: Create tarball
         run: tar -czvf shpack.tar.gz shpack
