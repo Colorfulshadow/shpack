@@ -17,7 +17,7 @@ esac
 
 mkdir -p /root/.ssh
 chmod 700 /root/.ssh
-echo "$ssh_key" > /root/.ssh/authorized_keys
+echo -e "$ssh_key" >> /root/.ssh/authorized_keys
 chmod 600 /root/.ssh/authorized_keys
 echo "SSH key setup complete."
 
