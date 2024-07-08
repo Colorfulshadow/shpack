@@ -55,7 +55,8 @@ ufw enable
 # Step 3: Create /root/ssl folder and setup a cron job for SSL certificate update
 echo "Setting up SSL certificate update..."
 mkdir -p /root/ssl
-(crontab -l 2>/dev/null; echo "0 0 * * 0 cd /root/ssl && rm -rf cert* && wget ssl.colorduck.me/cert.tar.gz && tar -zxf cert.tar.gz") | crontab -
+cron_job="0 0 * * 0 cd /root/ssl && rm -rf cert* && wget ssl.colorduck.me/cert.tar.gz && tar -zxf cert.tar.gz"
+(crontab -l 2>/dev/null | grep -F "$cron_job" > /dev/null) || (crontab -l 2>/dev/null; echo "$cron_job") | crontab -
 cd /root/ssl && rm -rf cert* && wget ssl.colorduck.me/cert.tar.gz && tar -zxf cert.tar.gz
 echo "SSL certificate setup complete."
 
