@@ -403,28 +403,11 @@ configure_xrayr() {
       SendIP: \"::\" # Set send IP for vnext (v2ray only)
       UpdatePeriodic: 60 # Time to update the nodeinfo, how many sec.
       EnableDNS: false # Enable custom DNS config
-      DisableUpscale: false # Disable upscale traffic
-      DisableDownscale: false # Disable downscale traffic
-      EnableProxyProtocol: false # Only works for WebSocket and TCP
-      EnableFallback: false # Only support for Trojan and Vless
-      FallBackConfigs:  # Support multiple fallbacks
-        -
-          SNI: # TLS SNI(Server Name Indication), empty for any
-          Alpn: # Alpn, empty for any
-          Path: # HTTP PATH, empty for any
-          Dest: 80 # Required, Destination of fallback, check https://xtls.github.io/config/features/fallback.html for details.
-          ProxyProtocolVer: 0 # Send PROXY protocol version, 0 for disable
       CertConfig:
         CertMode: ${cert_mode} # Option about how to get certificate: none, file, http, dns
         CertDomain: \"${ipv6_cert_domain}\" # Domain to cert
         CertFile: ${cert_file} # Provided if the CertMode is file
         KeyFile: ${key_file}
-        Provider: alidns # DNS cert provider, Get the full support list here: https://go-acme.github.io/lego/dns/
-        Email: test@me.com
-        DNSEnv: # DNS ENV option used by DNS provider
-          ALICLOUD_ACCESS_KEY: aaa
-          ALICLOUD_SECRET_KEY: bbb
-      PortOffset: ${ipv6_port_offset} # 端口偏移，避免与IPv4节点冲突"
     fi
     
     # 创建完整配置文件
