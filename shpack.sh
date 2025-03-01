@@ -361,6 +361,12 @@ install_shpack() {
         return 1
     }
     
+    # 为/usr/bin/shpack设置可执行权限
+    chmod +x /usr/bin/shpack || {
+    print_message "error" "无法为/usr/bin/shpack设置可执行权限"
+    return 1
+    }
+    
     print_message "info" "shpack安装成功"
     return 0
 }
