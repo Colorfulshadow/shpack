@@ -407,7 +407,7 @@ configure_xrayr() {
         CertMode: ${cert_mode} # Option about how to get certificate: none, file, http, dns
         CertDomain: \"${ipv6_cert_domain}\" # Domain to cert
         CertFile: ${cert_file} # Provided if the CertMode is file
-        KeyFile: ${key_file}
+        KeyFile: ${key_file}"
     fi
     
     # 创建完整配置文件
