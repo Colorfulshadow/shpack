@@ -21,13 +21,13 @@ SHPACK是一个功能强大的Linux服务器管理工具集，用于快速部署
 ### 快速安装
 
 ```bash
-bash -c "$(curl -fsSL https://raw.githubusercontent.com/Colorfulshadow/shpack/main/install.sh)"
+bash -c "$(curl -fsSL https://raw.githubusercontent.com/Colorfulshadow/shpack/main/shpack.sh)"
 ```
 
 对于中国大陆服务器，建议使用以下镜像安装命令：
 
 ```bash
-bash -c "$(curl -fsSL https://ghproxy.com/https://raw.githubusercontent.com/Colorfulshadow/shpack/main/install.sh)"
+bash -c "$(curl -fsSL https://ghproxy.com/https://raw.githubusercontent.com/Colorfulshadow/shpack/main/shpack.sh)"
 ```
 
 ### 手动安装
