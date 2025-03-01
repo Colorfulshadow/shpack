@@ -7,6 +7,7 @@
 # 2. 配置 XrayR 连接到 v2board 面板
 # 3. 设置证书
 # 4. 启动服务
+# 5. 支持 IPv4 和 IPv6 配置
 # ===================================================
 
 # 加载公共函数库
@@ -168,6 +169,20 @@ install_xrayr() {
     fi
 }
 
+# 检查IPv6支持
+check_ipv6_support() {
+    if [ -f /proc/net/if_inet6 ]; then
+        local ipv6_count=$(wc -l < /proc/net/if_inet6)
+        if [ "$ipv6_count" -gt 0 ]; then
+            log_message "info" "检测到IPv6支持"
+            return 0
+        fi
+    fi
+    
+    log_message "warn" "未检测到IPv6支持"
+    return 1
+}
+
 # 配置 XrayR
 configure_xrayr() {
     log_message "info" "配置 XrayR..."
@@ -295,8 +310,124 @@ configure_xrayr() {
         fi
     fi
     
+    # IPv6支持配置
+    local enable_ipv6="false"
+    local ipv6_node_id=""
+    local ipv6_port_offset="0"
+    
+    # 检测是否支持IPv6
+    if check_ipv6_support; then
+        read -p "是否同时配置IPv6节点? [y/N]: " ipv6_choice
+        if [[ "$ipv6_choice" = "y" || "$ipv6_choice" = "Y" ]]; then
+            enable_ipv6="true"
+            
+            # 询问是否使用不同的节点ID
+            read -p "是否为IPv6节点使用不同的节点ID? [y/N]: " diff_node_id_choice
+            if [[ "$diff_node_id_choice" = "y" || "$diff_node_id_choice" = "Y" ]]; then
+                read -p "请输入IPv6节点ID: " ipv6_node_id
+                if ! [[ "$ipv6_node_id" =~ ^[0-9]+$ ]]; then
+                    log_message "error" "节点ID必须是数字"
+                    return 1
+                fi
+            else
+                # 使用相同的节点ID
+                ipv6_node_id="$node_id"
+            fi
+
+            # 询问是否使用不同的证书域名
+            read -p "是否为IPv6节点使用不同的证书域名? [y/N]: " diff_cert_domain_choice
+            if [[ "$diff_cert_domain_choice" = "y" || "$diff_cert_domain_choice" = "Y" ]]; then
+                read -p "请输入IPv6证书域名: " ipv6_cert_domain
+                if [ -z "$ipv6_cert_domain" ]; then
+                    log_message "error" "证书域名不能为空"
+                    return 1
+                fi
+            else
+                # 使用相同的节点ID
+                ipv6_cert_domain="$cert_domain"
+            fi
+            
+            # 询问是否使用端口偏移
+            read -p "是否为IPv6节点设置端口偏移（避免端口冲突）? [y/N]: " port_offset_choice
+            if [[ "$port_offset_choice" = "y" || "$port_offset_choice" = "Y" ]]; then
+                read -p "请输入端口偏移值（通常为1）: " ipv6_port_offset
+                if ! [[ "$ipv6_port_offset" =~ ^[0-9]+$ ]]; then
+                    log_message "error" "端口偏移值必须是数字"
+                    ipv6_port_offset="0"
+                fi
+            fi
+        fi
+    fi
+    
     # 创建配置文件
     log_message "info" "生成 XrayR 配置文件..."
+    
+    # 基础节点配置
+    local nodes_config=""
+    
+    # IPv4节点配置
+    nodes_config+="  -
+    PanelType: \"V2board\" # Panel type: SSpanel, V2board
+    ApiConfig:
+      ApiHost: \"${api_host}\"
+      ApiKey: \"${api_key}\"
+      NodeID: ${node_id}
+      NodeType: ${node_type} # Node type: V2ray, Shadowsocks, Trojan
+      Timeout: 30 # Timeout for the api request
+      EnableVless: ${enable_vless} # Enable Vless for V2ray Type
+      EnableXTLS: ${enable_xtls} # Enable XTLS for V2ray and Trojan
+    ControllerConfig:
+      ListenIP: 0.0.0.0 # IP address you want to listen
+      UpdatePeriodic: 60 # Time to update the nodeinfo, how many sec.
+      EnableDNS: false # Enable custom DNS config
+      CertConfig:
+        CertMode: ${cert_mode} # Option about how to get certificate: none, file, http, dns
+        CertDomain: \"${cert_domain}\" # Domain to cert
+        CertFile: ${cert_file} # Provided if the CertMode is file
+        KeyFile: ${key_file}"
+    
+    # 添加IPv6节点配置（如果启用）
+    if [[ "$enable_ipv6" = "true" ]]; then
+        nodes_config+="\n  -
+    PanelType: \"V2board\" # Panel type: SSpanel, V2board
+    ApiConfig:
+      ApiHost: \"${api_host}\"
+      ApiKey: \"${api_key}\"
+      NodeID: ${ipv6_node_id}
+      NodeType: ${node_type} # Node type: V2ray, Shadowsocks, Trojan
+      Timeout: 30 # Timeout for the api request
+      EnableVless: ${enable_vless} # Enable Vless for V2ray Type
+      EnableXTLS: ${enable_xtls} # Enable XTLS for V2ray and Trojan
+    ControllerConfig:
+      ListenIP: \"::\" # IPv6 address you want to listen
+      SendIP: \"::\" # Set send IP for vnext (v2ray only)
+      UpdatePeriodic: 60 # Time to update the nodeinfo, how many sec.
+      EnableDNS: false # Enable custom DNS config
+      DisableUpscale: false # Disable upscale traffic
+      DisableDownscale: false # Disable downscale traffic
+      EnableProxyProtocol: false # Only works for WebSocket and TCP
+      EnableFallback: false # Only support for Trojan and Vless
+      FallBackConfigs:  # Support multiple fallbacks
+        -
+          SNI: # TLS SNI(Server Name Indication), empty for any
+          Alpn: # Alpn, empty for any
+          Path: # HTTP PATH, empty for any
+          Dest: 80 # Required, Destination of fallback, check https://xtls.github.io/config/features/fallback.html for details.
+          ProxyProtocolVer: 0 # Send PROXY protocol version, 0 for disable
+      CertConfig:
+        CertMode: ${cert_mode} # Option about how to get certificate: none, file, http, dns
+        CertDomain: \"${ipv6_cert_domain}\" # Domain to cert
+        CertFile: ${cert_file} # Provided if the CertMode is file
+        KeyFile: ${key_file}
+        Provider: alidns # DNS cert provider, Get the full support list here: https://go-acme.github.io/lego/dns/
+        Email: test@me.com
+        DNSEnv: # DNS ENV option used by DNS provider
+          ALICLOUD_ACCESS_KEY: aaa
+          ALICLOUD_SECRET_KEY: bbb
+      PortOffset: ${ipv6_port_offset} # 端口偏移，避免与IPv4节点冲突"
+    fi
+    
+    # 创建完整配置文件
     cat > "${XRAYR_CONFIG_DIR}/config.yml" << EOF
 Log:
   Level: warning  # Log level: none, error, warning, info, debug
@@ -313,25 +444,7 @@ ConnectionConfig:
   DownlinkOnly: 4 # Time limit when the connection is closed after the uplink is closed, Second
   BufferSize: 64 # The internal cache size of each connection, kB
 Nodes:
-  -
-    PanelType: "V2board" # Panel type: SSpanel, V2board
-    ApiConfig:
-      ApiHost: "${api_host}"
-      ApiKey: "${api_key}"
-      NodeID: ${node_id}
-      NodeType: ${node_type} # Node type: V2ray, Shadowsocks, Trojan
-      Timeout: 30 # Timeout for the api request
-      EnableVless: ${enable_vless} # Enable Vless for V2ray Type
-      EnableXTLS: ${enable_xtls} # Enable XTLS for V2ray and Trojan
-    ControllerConfig:
-      ListenIP: 0.0.0.0 # IP address you want to listen
-      UpdatePeriodic: 60 # Time to update the nodeinfo, how many sec.
-      EnableDNS: false # Enable custom DNS config
-      CertConfig:
-        CertMode: ${cert_mode} # Option about how to get certificate: none, file, http, dns
-        CertDomain: "${cert_domain}" # Domain to cert
-        CertFile: ${cert_file} # Provided if the CertMode is file
-        KeyFile: ${key_file}
+$(echo -e "$nodes_config")
 EOF
     
     check_command "创建配置文件"
@@ -350,6 +463,9 @@ XRAYR_CERT_MODE=${cert_mode}
 XRAYR_CERT_DOMAIN=${cert_domain}
 XRAYR_CERT_FILE=${cert_file}
 XRAYR_KEY_FILE=${key_file}
+XRAYR_ENABLE_IPV6=${enable_ipv6}
+XRAYR_IPV6_NODE_ID=${ipv6_node_id}
+XRAYR_IPV6_PORT_OFFSET=${ipv6_port_offset}
 EOF
     
     check_command "保存配置信息到: $XRAYR_CONFIG_FILE"
@@ -414,15 +530,30 @@ show_service_info() {
     fi
     
     # 获取服务器IP
-    local server_ip=$(curl -s https://api.ipify.org || curl -s http://ifconfig.me || curl -s icanhazip.com)
-    if [ -z "$server_ip" ]; then
-        server_ip="未知"
+    local server_ipv4=$(curl -s -4 https://api.ipify.org || curl -s -4 http://ifconfig.me || curl -s -4 icanhazip.com)
+    if [ -z "$server_ipv4" ]; then
+        server_ipv4="未知"
+    fi
+    
+    # 获取IPv6地址（如果启用）
+    local server_ipv6="未启用"
+    if [[ "$XRAYR_ENABLE_IPV6" = "true" ]]; then
+        server_ipv6=$(curl -s -6 https://api64.ipify.org || curl -s -6 http://ipv6.icanhazip.com || echo "未知")
     fi
     
     # 显示服务信息
     echo -e "\n${GREEN}========== XrayR 服务信息 ==========${NC}"
-    echo -e "${BLUE}服务器IP:${NC} $server_ip"
-    echo -e "${BLUE}节点ID:${NC} $XRAYR_NODE_ID"
+    echo -e "${BLUE}服务器IPv4:${NC} $server_ipv4"
+    
+    if [[ "$XRAYR_ENABLE_IPV6" = "true" ]]; then
+        echo -e "${BLUE}服务器IPv6:${NC} $server_ipv6"
+        echo -e "${BLUE}IPv4节点ID:${NC} $XRAYR_NODE_ID"
+        echo -e "${BLUE}IPv6节点ID:${NC} $XRAYR_IPV6_NODE_ID"
+        echo -e "${BLUE}IPv6端口偏移:${NC} $XRAYR_IPV6_PORT_OFFSET"
+    else
+        echo -e "${BLUE}节点ID:${NC} $XRAYR_NODE_ID"
+    fi
+    
     echo -e "${BLUE}节点类型:${NC} $XRAYR_NODE_TYPE"
     echo -e "${BLUE}面板地址:${NC} $XRAYR_API_HOST"
     echo -e "${BLUE}证书模式:${NC} $XRAYR_CERT_MODE"
