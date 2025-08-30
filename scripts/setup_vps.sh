@@ -230,6 +230,11 @@ setup_firewall() {
     check_command "允许HTTP流量"
     ufw allow https &>/dev/null
     check_command "允许HTTPS流量"
+
+    # 允许内网端口流量
+    log_message "info" "允许内网流量..."
+    ufw allow from 172.31.200.0/21 &>/dev/null
+    ufw allow from 172.22.0.0/15 &>/dev/null
     
     # 检测和添加SSH端口
     local ssh_port=$(grep -E "^#?Port " "$SSH_CONFIG" | awk '{print $2}')
